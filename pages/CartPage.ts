@@ -1,6 +1,12 @@
 import { Page, expect } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
+export interface CartItemsDetail {
+  name: string;
+  price: string;
+  quantity: string;
+}
+
 export class CartPage extends BasePage {
   private readonly shoppingCartTitle = this.page.getByText("Shopping Cart");
   private readonly checkoutButton = this.page.getByText("Proceed To Checkout");
@@ -71,6 +77,16 @@ export class CartPage extends BasePage {
     await expect(this.productQuantity(productName)).toHaveText(
       expectedQuantity,
     );
+  }
+
+  async verifyCartRows(items: CartItemsDetail[]) {
+    for (const item of items) {
+      await expect(this.productDesc(item.name)).toBeVisible();
+      await expect(this.productPrice(item.price)).toContainText(item.price);
+      await expect(this.productQuantity(item.quantity)).toHaveText(
+        item.quantity,
+      );
+    }
   }
 
   async verifyCartCount(expectedCount: number) {

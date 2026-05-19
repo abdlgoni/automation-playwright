@@ -16,6 +16,7 @@ test.describe("Cart", () => {
   // test("Add multiple product to cart", async ({ productpage, cartpage }) => {
   //   await productpage.navigate();
   //   await productpage.addMultipleToCart([1, 2, 3]);
-  //   await cartpage.verifyCartCount(3);
+  //   await cartpage.verifyCartCount(3)
+  //   await cartpage.verifyCartRows(CartItemsDetail)
   // });
 });
