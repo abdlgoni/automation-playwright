@@ -1,8 +1,14 @@
 import { Page, expect } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
+export interface ProductDetail {
+  name: string;
+  price: string;
+}
+
 export class ProductPage extends BasePage {
-  private readonly productCard = this.page.locator(".single-products");
+  private productCard = (index: number) =>
+    this.page.locator(".single-products").nth(index);
   private readonly addToCartButton = this.page.locator(
     ".product-overlay, .add-to-cart",
   );
@@ -30,6 +36,34 @@ export class ProductPage extends BasePage {
 
   async navigate() {
     await super.navigate("/products");
+  }
+
+  async getProductDetail(index: number): Promise<ProductDetail> {
+    const card = this.productCard(index);
+
+    const price =
+      (await card
+        .getByRole("heading", { name: "Rs." })
+        .first()
+        .textContent()) ?? "";
+
+    const name = (await card.locator("p").first().textContent()) ?? "";
+
+    return {
+      name: name.trim(),
+      price: price.replace("Rs.", "").trim(),
+    };
+  }
+
+  async getProductDetails(indexes: number[]): Promise<ProductDetail[]> {
+    const details: ProductDetail[] = [];
+
+    for (const index of indexes) {
+      const detail = await this.getProductDetail(index);
+      details.push(detail);
+    }
+
+    return details;
   }
 
   async addToCartByIndex(index: number = 0) {
@@ -70,9 +104,5 @@ export class ProductPage extends BasePage {
 
   async expectProductResultVisible() {
     await expect(this.searchResultSection).toBeVisible();
-  }
-
-  async expectProductCountAttleast(count: number) {
-    await expect(this.productCard).toHaveCount(count);
   }
 }

@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
 import { BasePage } from "./BasePage";
+import { ProductDetail } from "./ProductPage";
 
 export interface CartItemsDetail {
   name: string;
@@ -50,43 +51,42 @@ export class CartPage extends BasePage {
     await super.navigate("/view_cart");
   }
 
-  async verifyProductInCart(productName: string) {
-    await expect(this.cartRow(productName)).toBeVisible();
+  async expectCartPageVisible() {
+    await expect(this.shoppingCartTitle).toBeVisible();
   }
 
-  async getProductPrice(productName: string): Promise<string | null> {
-    return this.productPrice(productName).textContent();
+  async getActualCartRow(productName: string): Promise<CartItemsDetail> {
+    const price = (await this.productPrice(productName).textContent()) ?? "";
+    const quantity =
+      (await this.productQuantity(productName).textContent()) ?? "";
+
+    return {
+      name: productName,
+      price: price.replace("Rs.", "").trim(),
+      quantity: quantity.trim(),
+    };
   }
 
-  async getProductQuantity(productName: string) {
-    return this.productQuantity(productName).textContent();
+  async verifyPriceConsistency(
+    productName: string,
+    priceFromProductPage: string,
+  ) {
+    const actual = await this.getActualCartRow(productName);
+    expect(actual.price).toBe(priceFromProductPage);
+  }
+
+  async verifyAllPriceConsistensy(productsFromProductPage: ProductDetail[]) {
+    for (const product of productsFromProductPage) {
+      const actual = await this.getActualCartRow(product.name);
+
+      expect(actual.name).toBe(product.name);
+      expect(actual.price).toBe(product.price);
+    }
   }
 
   async deleteProduct(productName: string) {
     await this.deleteButton(productName).click();
     await expect(this.cartRow(productName)).not.toBeVisible();
-  }
-
-  async verifyCartrow(
-    productName: string,
-    expectedPrice: string,
-    expectedQuantity: string,
-  ) {
-    await expect(this.productDesc(productName)).toBeVisible();
-    await expect(this.productPrice(productName)).toContainText(expectedPrice);
-    await expect(this.productQuantity(productName)).toHaveText(
-      expectedQuantity,
-    );
-  }
-
-  async verifyCartRows(items: CartItemsDetail[]) {
-    for (const item of items) {
-      await expect(this.productDesc(item.name)).toBeVisible();
-      await expect(this.productPrice(item.price)).toContainText(item.price);
-      await expect(this.productQuantity(item.quantity)).toHaveText(
-        item.quantity,
-      );
-    }
   }
 
   async verifyCartCount(expectedCount: number) {
