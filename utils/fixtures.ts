@@ -36,6 +36,7 @@ export const test = base.extend<PageFixtures>({
   cartpage: async ({ page }, use) => {
     const cartpage = new CartPage(page);
     await use(cartpage);
+    await cartpage.clearCart();
   },
 });
 

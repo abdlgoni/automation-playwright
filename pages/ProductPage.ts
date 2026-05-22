@@ -7,47 +7,62 @@ export interface ProductDetail {
 }
 
 export class ProductPage extends BasePage {
-  private productCard = (index: number) =>
-    this.page.locator(".single-products").nth(index);
-  private readonly addToCartButton = this.page.locator(
-    ".product-overlay, .add-to-cart",
-  );
-  private readonly viewProductButton = this.page.getByRole("link", {
-    name: "View Product",
-  });
+  // ── Locators ──────────────────────────────────────────────────────────────
 
-  private readonly searchProductInput = this.page.getByRole("textbox", {
-    name: "Search Product",
-  });
-  private readonly searchButton = this.page.locator("#submit_search");
-  private readonly searchResultSection = this.page.locator("#searched-product");
-
+  // Static — dipakai di lebih dari satu method
   private readonly modal = this.page.locator(".modal-dialog");
   private readonly viewCartLink = this.page.getByRole("link", {
     name: "View Cart",
   });
-  private readonly continueShoppingButton = this.page.getByRole("button", {
+  private readonly continueShoppingBtn = this.page.getByRole("button", {
     name: "Continue Shopping",
   });
+  private readonly searchInput = this.page.getByRole("textbox", {
+    name: "Search Product",
+  });
+  private readonly searchButton = this.page.locator("#submit_search");
+  private readonly searchResultSection =
+    this.page.locator("#searched-products");
+  private readonly productList = this.page.locator(".single-products");
+
+  // Dynamic — bergantung index, inline di method yang memakainya
+  private productCard = (index: number) => this.productList.nth(index);
 
   constructor(page: Page) {
     super(page);
   }
 
+  // ── Navigation ────────────────────────────────────────────────────────────
+
   async navigate() {
     await super.navigate("/products");
   }
 
+  // ── Assertions ────────────────────────────────────────────────────────────
+
+  /** Verifikasi halaman produk berhasil dimuat */
+  async expectProductsLoaded() {
+    await expect(this.productList.first()).toBeVisible();
+    await expect(this.productList).not.toHaveCount(0);
+  }
+
+  /** Verifikasi hasil search mengandung nama produk */
+  async expectSearchResultContains(productName: string) {
+    await expect(this.searchResultSection).toBeVisible();
+    await expect(
+      this.searchResultSection.locator(".productinfo p", {
+        hasText: productName,
+      }),
+    ).toBeVisible();
+  }
+
+  // ── Data Capture ──────────────────────────────────────────────────────────
+
+  /** Ambil detail produk (nama & harga) dari product card by index */
   async getProductDetail(index: number): Promise<ProductDetail> {
     const card = this.productCard(index);
-
-    const price =
-      (await card
-        .getByRole("heading", { name: "Rs." })
-        .first()
-        .textContent()) ?? "";
-
-    const name = (await card.locator("p").first().textContent()) ?? "";
+    const name = (await card.locator(".productinfo p").textContent()) ?? "";
+    const price = (await card.locator(".productinfo h2").textContent()) ?? "";
 
     return {
       name: name.trim(),
@@ -55,37 +70,54 @@ export class ProductPage extends BasePage {
     };
   }
 
+  /** Ambil detail beberapa produk sekaligus by indexes */
   async getProductDetails(indexes: number[]): Promise<ProductDetail[]> {
     const details: ProductDetail[] = [];
 
     for (const index of indexes) {
-      const detail = await this.getProductDetail(index);
-      details.push(detail);
+      details.push(await this.getProductDetail(index));
     }
 
     return details;
   }
 
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  /** Klik Add to Cart — hover dulu agar overlay muncul */
+  private async clickAddToCart(index: number) {
+    const card = this.productCard(index);
+    await card.hover();
+    await card.locator("a.add-to-cart").first().click();
+  }
+
+  /** Tambah produk ke cart lalu lanjut belanja (modal ditutup) */
   async addToCartByIndex(index: number = 0) {
-    await this.addToCartButton.nth(index).click();
+    await this.clickAddToCart(index);
     await expect(this.modal).toBeVisible();
-    await this.continueShoppingButton.click();
+    await this.continueShoppingBtn.click();
     await expect(this.modal).toBeHidden();
   }
 
+  /** Tambah produk ke cart lalu langsung buka halaman cart */
   async addToCartAndViewCart(index: number = 0) {
-    await this.addToCartButton.nth(index).click();
+    await this.clickAddToCart(index);
     await expect(this.modal).toBeVisible();
     await this.viewCartLink.click();
   }
 
+  /**
+   * Tambah beberapa produk ke cart sekaligus.
+   * Produk non-terakhir → Continue Shopping, produk terakhir → View Cart.
+   */
   async addMultipleToCart(indexes: number[]) {
+    const lastIndex = indexes[indexes.length - 1];
+
     for (const index of indexes) {
-      await this.addToCartButton.nth(index).click();
+      await this.clickAddToCart(index);
       await expect(this.modal).toBeVisible();
 
-      if (index !== indexes[indexes.length - 1]) {
-        await this.continueShoppingButton.click();
+      if (index !== lastIndex) {
+        await this.continueShoppingBtn.click();
         await expect(this.modal).toBeHidden();
       } else {
         await this.viewCartLink.click();
@@ -93,16 +125,16 @@ export class ProductPage extends BasePage {
     }
   }
 
+  /** Klik View Product untuk masuk ke detail produk */
   async clickViewProduct(index: number = 0) {
-    await this.viewProductButton.click();
+    await this.productCard(index)
+      .getByRole("link", { name: "View Product" })
+      .click();
   }
 
+  /** Isi search input dan submit */
   async searchProduct(productName: string) {
-    await this.searchProductInput.fill(productName);
+    await this.searchInput.fill(productName);
     await this.searchButton.click();
-  }
-
-  async expectProductResultVisible() {
-    await expect(this.searchResultSection).toBeVisible();
   }
 }

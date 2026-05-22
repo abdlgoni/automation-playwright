@@ -37,7 +37,21 @@ export class CartPage extends BasePage {
   private deleteButton = (productName: string) =>
     this.cartRow(productName).locator(".cart_quantity_delete");
 
-  private allDeleteButton = this.cartTable.locator(".cart_quantity_delete");
+  private allDeleteButtons = this.cartTable.locator(".cart_quantity_delete");
+
+  async clearCart() {
+    await this.navigate();
+
+    const count = await this.allDeleteButtons.count();
+
+    if (count === 0) return;
+
+    for (let i = 0; i < count; i++) {
+      await this.allDeleteButtons.first().click();
+
+      await expect(this.allDeleteButtons).toHaveCount(count - i - 1);
+    }
+  }
 
   async getCartRow(productName: string) {
     return this.cartRow(productName);
@@ -90,7 +104,7 @@ export class CartPage extends BasePage {
   }
 
   async verifyCartCount(expectedCount: number) {
-    await expect(this.allDeleteButton).toHaveCount(expectedCount);
+    await expect(this.allDeleteButtons).toHaveCount(expectedCount);
   }
 
   async clickCheckout() {

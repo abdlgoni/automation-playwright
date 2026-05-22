@@ -1,4 +1,5 @@
-import { test, expect } from "../../utils/fixtures";
+import { test } from "../../utils/fixtures";
+
 import { newUser } from "../../utils/testData";
 
 test.describe("Registration", () => {
