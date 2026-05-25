@@ -178,7 +178,7 @@ automationexercise-playwright-ts/
 ### Prasyarat
 
 Pastikan sudah terinstall:
-- [Node.js](https://nodejs.org) v20+
+- [Node.js](https://nodejs.org) v24
 - npm v9+
 
 ```bash
