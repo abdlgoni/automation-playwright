@@ -21,8 +21,7 @@ export class ProductPage extends BasePage {
     name: "Search Product",
   });
   private readonly searchButton = this.page.locator("#submit_search");
-  private readonly searchResultSection =
-    this.page.locator("#searched-products");
+
   private readonly productList = this.page.locator(".single-products");
 
   // Dynamic — bergantung index, inline di method yang memakainya
@@ -48,9 +47,9 @@ export class ProductPage extends BasePage {
 
   /** Verifikasi hasil search mengandung nama produk */
   async expectSearchResultContains(productName: string) {
-    await expect(this.searchResultSection).toBeVisible();
+    await this.expectProductsLoaded();
     await expect(
-      this.searchResultSection.locator(".productinfo p", {
+      this.productList.locator(".productinfo p", {
         hasText: productName,
       }),
     ).toBeVisible();
@@ -61,9 +60,12 @@ export class ProductPage extends BasePage {
   /** Ambil detail produk (nama & harga) dari product card by index */
   async getProductDetail(index: number): Promise<ProductDetail> {
     const card = this.productCard(index);
-    const name = (await card.locator(".productinfo p").textContent()) ?? "";
-    const price = (await card.locator(".productinfo h2").textContent()) ?? "";
-
+    const price =
+      (await card
+        .getByRole("heading", { name: "Rs." })
+        .first()
+        .textContent()) ?? "";
+    const name = (await card.locator("p").first().textContent()) ?? "";
     return {
       name: name.trim(),
       price: price.replace("Rs.", "").trim(),

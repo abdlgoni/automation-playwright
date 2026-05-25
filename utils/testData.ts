@@ -6,8 +6,8 @@ export interface loginCredentials {
 }
 
 export const validUser: loginCredentials = {
-  email: "azis@example.com",
-  password: "azis123",
+  email: process.env.VALID_EMAIL ?? "azis@example.com",
+  password: process.env.VALID_PASSWORD ?? "azis123",
 };
 
 export const invalidUser: loginCredentials = {

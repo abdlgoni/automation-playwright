@@ -1,0 +1,81 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: ["**"]  
+
+jobs:
+
+
+  test-no-auth:
+    name: Tests — No Auth          
+    runs-on: ubuntu-latest        
+    timeout-minutes: 30          
+
+    steps:
+    
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20      
+          cache: "npm"           
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run no-auth tests
+        run: npx playwright test --project=no-auth
+
+      - name: Upload HTML report
+        if: always()             
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-no-auth
+          path: playwright-report/
+          retention-days: 30    
+
+
+  test-with-auth:
+    name: Tests — With Auth
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Create .env file
+        run: |
+          echo "VALID_EMAIL=${{ secrets.VALID_EMAIL }}" >> .env
+          echo "VALID_PASSWORD=${{ secrets.VALID_PASSWORD }}" >> .env
+
+      - name: Save login session
+        run: npx tsx utils/saveSession.ts
+
+      - name: Run with-auth tests
+        run: npx playwright test --project=with-auth
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-with-auth
+          path: playwright-report/
+          retention-days: 30

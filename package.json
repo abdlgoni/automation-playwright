@@ -4,19 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test":          "playwright test",
-    "test:auth":     "playwright test --project=no-auth",
+    "test": "playwright test",
+    "test:auth": "playwright test --project=no-auth",
     "test:loggedin": "playwright test --project=with-auth",
-    "test:headed":   "playwright test --headed",
-    "test:ui":       "playwright test --ui",
-    "test:report":   "playwright show-report",
-    "session":       "tsx utils/saveSession.ts" 
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "session": "tsx utils/saveSession.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "dotenv": "^17.4.2"
   }
 }

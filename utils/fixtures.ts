@@ -4,12 +4,14 @@ import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { ProductPage } from "../pages/ProductPage";
 import { CartPage } from "../pages/CartPage";
+import { DetailProductPage } from "../pages/DetailProductPage";
 
 type PageFixtures = {
   homepage: HomePage;
   loginpage: LoginPage;
   registerpage: RegisterPage;
   productpage: ProductPage;
+  detailproductpage: DetailProductPage;
   cartpage: CartPage;
 };
 
@@ -33,11 +35,19 @@ export const test = base.extend<PageFixtures>({
     await use(productpage);
   },
 
-  cartpage: async ({ page }, use) => {
-    const cartpage = new CartPage(page);
-    await use(cartpage);
-    await cartpage.clearCart();
+  detailproductpage: async ({ page }, use) => {
+    const detailproductpage = new DetailProductPage(page);
+    await use(detailproductpage);
   },
+
+  cartpage: [
+    async ({ page }, use) => {
+      const cartpage = new CartPage(page);
+      await cartpage.clearCart();
+      await use(cartpage);
+    },
+    { auto: true },
+  ],
 });
 
 export { expect } from "@playwright/test";
