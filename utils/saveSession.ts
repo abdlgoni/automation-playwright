@@ -2,7 +2,7 @@ import { chromium, FullConfig } from "@playwright/test";
 import { validUser } from "./testData";
 
 async function saveSession(config: FullConfig) {
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch();
   const page = await browser.newPage();
 
   await page.goto("https://automationexercise.com/login");
